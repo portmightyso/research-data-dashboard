@@ -189,19 +189,28 @@
                 }
             };
 
-            const submitData = () => {
-                if (!selectedProjectId.value || !datasetName.value || !measuredValue.value) return;
+            const submitData = async () => {
+    if (!selectedProjectId.value || !datasetName.value || !measuredValue.value) return;
 
-                experiments.value.push({
-                    id: Date.now(),
-                    projectId: selectedProjectId.value,
-                    name: datasetName.value,
-                    value: parseFloat(measuredValue.value),
-                    notes: notes.value
-                });
-
-                datasetName.value = ''; measuredValue.value = ''; notes.value = '';
-            };
+    // ارسال به دیتابیس واقعی جنگو
+    const response = await fetch('/api/experiments/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            projectId: selectedProjectId.value,
+            name: datasetName.value,
+            value: measuredValue.value,
+            notes: notes.value
+        })
+    });
+    
+    const data = await response.json();
+    if (data.status === 'success') {
+        // فقط وقتی بک‌آند تایید کرد، به لیست روی صفحه اضافه کن
+        experiments.value.push(data.experiment); 
+        datasetName.value = ''; measuredValue.value = ''; notes.value = '';
+    }
+};
 
             const deleteProject = async (id) => {
                 if (!confirm("Are you sure you want to delete this project?")) return;
@@ -238,7 +247,10 @@
                 return experiments.value.filter(exp => exp.projectId === activeProjectId.value);
             });
 
-            onMounted(fetchProjects);
+           onMounted(() => {
+    fetchProjects();
+    fetchExperiments(); // <-- این خط خیلی مهم است! اگر نباشد، صفحه بعد از رفرش لاگ‌ها را دیتابیس نمی‌خواند.
+});
 
             // یادت نرفته که متغیر جدید currentTab را اینجا هم ریترن کنیم!
             return { 
