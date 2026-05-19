@@ -25,8 +25,11 @@ SECRET_KEY = 'django-insecure-z+lqi$c3xbe%n9ordk+ivg85ft61475#*q3#s@==(65cav2g4s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# خط ALLOWED_HOSTS را پیدا کن و اینطور تغییرش بده:
+ALLOWED_HOSTS = ['*']
 
+# خط CSRF_TRUSTED_ORIGINS را اگر نیست، در انتهای فایل اضافه کن:
+CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
 
 # Application definition
 
