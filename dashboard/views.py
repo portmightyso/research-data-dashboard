@@ -85,3 +85,61 @@ class ProjectListAPI(View):
             return JsonResponse({'status': 'success', 'message': 'Project deleted successfully'})
         except ResearchProject.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Project not found'}, status=404)
+        # ۱. حتماً مطمئن شو که بالا فولد اِسم درست را ایمپورت کردی:
+from .models import ResearchProject, ExperimentData  # <-- اصلاح شد
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ExperimentLogAPI(View):
+    def get(self, request, *args, **kwargs):
+        # گرفتن تمام داده‌ها از مدل کدهای خودت
+        logs = ExperimentData.objects.all()  # <-- اصلاح شد
+        data = []
+        for log in logs:
+            data.append({
+                'id': log.id,
+                'projectId': log.project.id,
+                'name': log.dataset_name,
+                'value': log.measured_value,
+                'notes': log.notes
+            })
+        return JsonResponse({'experiments': data}, safe=False)
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'status': 'error', 'message': 'Unauthorized'}, status=401)
+            
+        body = json.loads(request.body)
+        
+        try:
+            project = ResearchProject.objects.get(id=body['projectId'])
+        except ResearchProject.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Project not found'}, status=404)
+            
+        # ذخیره در مدل کدهای خودت
+        new_log = ExperimentData.objects.create(  # <-- اصلاح شد
+            project=project,
+            dataset_name=body['name'],
+            measured_value=float(body['value']),
+            notes=body.get('notes', '')
+        )
+        
+        return JsonResponse({
+            'status': 'success',
+            'experiment': {
+                'id': new_log.id,
+                'projectId': new_log.project.id,
+                'name': new_log.dataset_name,
+                'value': new_log.measured_value,
+                'notes': new_log.notes
+            }
+        })
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            body = json.loads(request.body)
+            log_id = body.get('id')
+            log = ExperimentData.objects.get(id=log_id)  # <-- اصلاح شد
+            log.delete()
+            return JsonResponse({'status': 'success', 'message': 'Log deleted successfully'})
+        except ExperimentData.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Log not found'}, status=404)
