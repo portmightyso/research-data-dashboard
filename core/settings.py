@@ -115,7 +115,10 @@ USE_I18N = True
 
 USE_TZ = True
 
-
+# تنظیمات مسیرهای هدایت پس از لاگین و لاگ‌اوت
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = 'dashboard_home'  # به جای مسیر پیش‌فرض، به اسم پترن صفحه اصلی اشاره می‌کند
+LOGOUT_REDIRECT_URL = 'login_view'     # بعد از خروج برود به صفحه لاگین
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
