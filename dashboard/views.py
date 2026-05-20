@@ -33,10 +33,16 @@ class ProjectAPI(View):
             })
         return JsonResponse({'projects': data}, safe=False)
 
-    def post(self, request, *args, **kwargs):
-        researcher = request.user.username if request.user.is_authenticated else "Prof. Soroush"
+def post(self, request, *args, **kwargs):
+        # بررسی اینکه آیا کاربر واقعاً لاگین است یا خیر
+        if request.user.is_authenticated:
+            researcher = request.user.username
+        else:
+            researcher = "Prof. Soroush"
+
         try:
             body = json.loads(request.body)
+            # ایجاد و ذخیره مستقیم در دیتابیس نئون
             new_project = ResearchProject.objects.create(
                 title=body['title'],
                 researcher_name=researcher
@@ -51,6 +57,7 @@ class ProjectAPI(View):
                 }
             })
         except Exception as e:
+            # این خط باعث می‌شود اگر نئون اروری داد (مثل نبودن جدول یا فیلد اضافه)، توی کنسول مرورگر متوجه بشوی
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
     def delete(self, request, *args, **kwargs):
