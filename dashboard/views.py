@@ -1,119 +1,176 @@
 import json
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.http import JsonResponse
-from django.views import View
-from django.views.generic import TemplateView
-from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from .models import ResearchProject, ExperimentData
 
-# ۱. نمایش صفحه اصلی داشبورد (با دسترسی کنترل شده)
-class DashboardHome(LoginRequiredMixin, TemplateView):
-    template_name = 'index.html'
-    login_url = '/login/'
+# ==================== ۱. مدیریت احراز هویت و صفحات ====================
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['professor_name'] = self.request.user.username if self.request.user.is_authenticated else "Soroush"
-        return context
+@login_required
+def dashboard_view(request):
+    """رندر کردن صفحه اصلی داشبورد تحقیقاتی"""
+    # ارسال نام استاد/پژوهشگر به فرانت‌آند برای شخصی‌سازی محیط
+    context = {
+        'professor_name': request.user.username.capitalize()
+    }
+    return render(request, 'index.html', context)
+
+def register_view(request):
+    """ثبت‌نام پژوهشگر جدید"""
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('dashboard_view')
+    else:
+        form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})
+
+def login_view(request):
+    """ورود اعضای دپارتمان به سیستم مدیریت داده"""
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('dashboard_view')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
+def logout_view(request):
+    """خروج امن از سیستم"""
+    if request.method == 'POST':
+        logout(request)
+        return redirect('login_view')
+    return redirect('login_view')
 
 
-# ۲. مدیریت API مربوط به پروژه‌ها (لیست، ثبت و حذف)
-@method_decorator(csrf_exempt, name='dispatch')
-class ProjectAPI(View):
-    def get(self, request, *args, **kwargs):
-        projects = ResearchProject.objects.all()
-        data = []
-        for p in projects:
-            data.append({
-                'id': p.id,
-                'title': p.title,
-                'researcher': p.researcher_name,
-                'date': p.created_at.strftime('%Y-%m-%d') if p.created_at else ''
-            })
-        return JsonResponse({'projects': data}, safe=False)
+# ==================== ۲. ماژول مدیریت پروژه‌ها (API) ====================
 
-    def post(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            researcher = request.user.username
-        else:
-            researcher = "Prof. Soroush"
+@csrf_exempt
+@login_required
+def project_api(request):
+    """خط ارتباطی (API) فرانت‌آند برای افزودن، خواندن و حذف پروژه‌ها"""
+    
+    # دریافت لیست تمام پروژه‌های فعال
+    if request.method == 'GET':
+        projects = ResearchProject.objects.all().order_by('-id')
+        project_list = [{
+            'id': p.id,
+            'title': p.title,
+            'researcher': p.researcher_name
+        } for p in projects]
+        return JsonResponse({'projects': project_list})
 
+    # ثبت یک پروژه تحقیقاتی جدید
+    elif request.method == 'POST':
         try:
-            body = json.loads(request.body)
+            data = json.loads(request.body)
+            title = data.get('title', '').strip()
+            if not title:
+                return JsonResponse({'status': 'error', 'message': 'Project title is required'}, status=400)
+            
             new_project = ResearchProject.objects.create(
-                title=body['title'],
-                researcher_name=researcher
+                title=title,
+                researcher_name=request.user.username
             )
             return JsonResponse({
                 'status': 'success',
                 'project': {
                     'id': new_project.id,
                     'title': new_project.title,
-                    'researcher': new_project.researcher_name,
-                    'date': new_project.created_at.strftime('%Y-%m-%d') if new_project.created_at else ''
+                    'researcher': new_project.researcher_name
                 }
             })
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'}, status=400)
 
-    def delete(self, request, *args, **kwargs):
+    # حذف پروژه و تمام داده‌های متصل به آن (Cascade)
+    elif request.method == 'DELETE':
         try:
-            body = json.loads(request.body)
-            project_id = body.get('id')
+            data = json.loads(request.body)
+            project_id = data.get('id')
+            ResearchProject.objects.filter(id=project_id).delete()
+            return JsonResponse({'status': 'success'})
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'}, status=400)
+
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+
+# ==================== ۳. ماژول مدیریت داده‌های آزمایشگاهی (API) ====================
+
+@csrf_exempt
+@login_required
+def experiment_log_api(request):
+    """خط ارتباطی (API) فرانت‌آند برای ثبت لاگ‌ها، دریافت و حذف داده‌های فیلتر شده"""
+
+    # دریافت تمامی لاگ‌های ثبت شده در سیستم همراه با برچسب وضعیت
+    if request.method == 'GET':
+        experiments = ExperimentData.objects.all().order_by('id')
+        experiments_list = [{
+            'id': e.id,
+            'projectId': e.project.id,
+            'name': e.dataset_name,
+            'value': e.measured_value,
+            'status': e.status,  # وضعیت کیفیت داده (Success/Anomaly/Retest)
+            'notes': e.lab_notes or ''
+        } for e in experiments]
+        return JsonResponse({'experiments': experiments_list})
+
+    # ثبت امن داده‌های ورودی از سنسور یا فرانت‌آند داشبورد
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            project_id = data.get('projectId')
+            name = data.get('name', '').strip()
+            value = data.get('value')
+            status = data.get('status', 'success')
+            notes = data.get('notes', '').strip()
+
+            if not project_id or not name or value is None:
+                return JsonResponse({'status': 'error', 'message': 'Missing fields'}, status=400)
+
+            # متصل کردن لاگ به پروژه هدف از طریق کلید خارجی
             project = ResearchProject.objects.get(id=project_id)
-            project.delete()
-            return JsonResponse({'status': 'success', 'message': 'Project deleted successfully'})
-        except ResearchProject.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Project not found'}, status=404)
-
-
-# ۳. مدیریت API مربوط به داده‌های آزمایشگاهی (لیست، ثبت و حذف)
-@method_decorator(csrf_exempt, name='dispatch')
-class ExperimentLogAPI(View):
-    def get(self, request, *args, **kwargs):
-        experiments = ExperimentData.objects.all()
-        data = []
-        for e in experiments:
-            data.append({
-                'id': e.id,
-                'projectId': e.project.id if e.project else None,
-                'name': e.dataset_name,
-                'value': float(e.measured_value) if e.measured_value else 0.0,
-                'notes': e.lab_notes
-            })
-        return JsonResponse({'experiments': data}, safe=False)
-
-    def post(self, request, *args, **kwargs):
-        try:
-            body = json.loads(request.body)
-            project = ResearchProject.objects.get(id=body['projectId'])
             
             new_log = ExperimentData.objects.create(
                 project=project,
-                dataset_name=body['name'],
-                measured_value=body['value'],
-                lab_notes=body.get('notes', '')
+                dataset_name=name,
+                measured_value=float(value),
+                status=status,
+                lab_notes=notes
             )
+            
             return JsonResponse({
                 'status': 'success',
                 'experiment': {
                     'id': new_log.id,
-                    'projectId': project.id,
+                    'projectId': new_log.project.id,
                     'name': new_log.dataset_name,
-                    'value': float(new_log.measured_value),
+                    'value': new_log.measured_value,
+                    'status': new_log.status,
                     'notes': new_log.lab_notes
                 }
             })
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        except ResearchProject.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Target project not found'}, status=404)
+        except (json.JSONDecodeError, ValueError):
+            return JsonResponse({'status': 'error', 'message': 'Invalid payload format'}, status=400)
 
-    def delete(self, request, *args, **kwargs):
+    # حذف یک لاگ آزمایشگاهی خاص
+    elif request.method == 'DELETE':
         try:
-            body = json.loads(request.body)
-            log_id = body.get('id')
-            log = ExperimentData.objects.get(id=log_id)
-            log.delete()
-            return JsonResponse({'status': 'success', 'message': 'Log deleted successfully'})
-        except ExperimentData.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Log not found'}, status=404)
+            data = json.loads(request.body)
+            log_id = data.get('id')
+            ExperimentData.objects.filter(id=log_id).delete()
+            return JsonResponse({'status': 'success'})
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'}, status=400)
+
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)

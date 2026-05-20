@@ -1,19 +1,24 @@
 from django.urls import path
-from django.contrib.auth.views import LoginView, LogoutView
+# ایمپورت کردن توابع درست بر اساس views.py جدید
 from .views import (
-    DashboardHome, 
-    ProjectAPI,
-    ExperimentLogAPI
+    dashboard_view,
+    register_view,
+    login_view,
+    logout_view,
+    project_api,
+    experiment_log_api
 )
 
 urlpatterns = [
-    path('', DashboardHome.as_view(), name='dashboard_home'),
+    # مسیر اصلی داشبورد تحقیقاتی
+    path('', dashboard_view, name='dashboard_view'),
     
-    # مسیرهای احراز هویت با نام‌گذاری دقیق برای حل ارور تملپیت
-    path('login/', LoginView.as_view(template_name='login.html'), name='login_view'),
-    path('logout/', LogoutView.as_view(next_page='login_view'), name='logout_view'), # این خط دقیقاً ارور را برطرف می‌کند
+    # مسیرهای احراز هویت دپارتمان
+    path('register/', register_view, name='register_view'),
+    path('login/', login_view, name='login_view'),
+    path('logout/', logout_view, name='logout_view'),
     
-    # مسیرهای API
-    path('api/projects/', ProjectAPI.as_view(), name='project_api'),
-    path('api/experiments/', ExperimentLogAPI.as_view(), name='experiment_api'),
+    # مسیرهای اتصالات API به فرانت‌آند Vue.js
+    path('api/projects/', project_api, name='project_api'),
+    path('api/experiments/', experiment_log_api, name='experiment_log_api'),
 ]

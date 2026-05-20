@@ -1,25 +1,27 @@
 from django.db import models
 
 class ResearchProject(models.Model):
-    # عنوان پروژه پژوهشی
-    title = models.CharField(max_length=200)
-    # نام محقق یا استاد مربوطه
-    researcher_name = models.CharField(max_length=100)
-    # تاریخ ثبت آزمایش
-    created_at = models.DateField(auto_now_add=True)
+    title = models.CharField(max_length=255)
+    researcher_name = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
 
 class ExperimentData(models.Model):
-    # اتصال داده‌ها به پروژه مربوطه (رابطه کلید خارجی)
-    project = models.ForeignKey(ResearchProject, on_delete=models.CASCADE, related_name='datasets')
-    # نام یا شناسه این بخش از داده (مثلاً تست شماره ۱)
-    dataset_name = models.CharField(max_length=150)
-    # مقدار عددی ثبت شده (مثلاً ولتاژ یا خروجی کنترلر)
-    measured_value = models.FloatField()
-    # یادداشت‌های آزمایشگاهی
-    notes = models.TextField(blank=True, null=True)
+    # تعریف گزینه‌های وضعیت برای دیتابیس
+    STATUS_CHOICES = [
+        ('success', 'Success'),
+        ('anomaly', 'Noise / Anomaly'),
+        ('retest', 'Needs Retest'),
+    ]
+
+    project = models.ForeignKey(ResearchProject, on_delete=models.CASCADE, related_name='experiments')
+    dataset_name = models.CharField(max_length=255)
+    measured_value = models.FloatField(default=0.0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='success') # فیلد جدید
+    lab_notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.dataset_name} - {self.measured_value}"
+        return self.dataset_name
