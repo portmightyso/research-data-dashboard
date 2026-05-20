@@ -7,18 +7,18 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import ResearchProject, ExperimentData
 
-# ۱. کلاس نمایش صفحه اصلی داشبورد (که رندر به خاطرش ارور می‌داد)
+# ۱. نمایش صفحه اصلی داشبورد (با دسترسی کنترل شده)
 class DashboardHome(LoginRequiredMixin, TemplateView):
     template_name = 'index.html'
-    login_url = '/login/'  # اگر کاربر لاگین نبود، هدایت می‌شود به صفحه لاگین
+    login_url = '/login/'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # فرستادن نام استاد به قالب HTML
         context['professor_name'] = self.request.user.username if self.request.user.is_authenticated else "Soroush"
         return context
 
-# ۲. مدیریت API مربوط به پروژه‌ها
+
+# ۲. مدیریت API مربوط به پروژه‌ها (لیست، ثبت و حذف)
 @method_decorator(csrf_exempt, name='dispatch')
 class ProjectAPI(View):
     def get(self, request, *args, **kwargs):
@@ -33,8 +33,7 @@ class ProjectAPI(View):
             })
         return JsonResponse({'projects': data}, safe=False)
 
-def post(self, request, *args, **kwargs):
-        # بررسی اینکه آیا کاربر واقعاً لاگین است یا خیر
+    def post(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             researcher = request.user.username
         else:
@@ -42,7 +41,6 @@ def post(self, request, *args, **kwargs):
 
         try:
             body = json.loads(request.body)
-            # ایجاد و ذخیره مستقیم در دیتابیس نئون
             new_project = ResearchProject.objects.create(
                 title=body['title'],
                 researcher_name=researcher
@@ -57,7 +55,6 @@ def post(self, request, *args, **kwargs):
                 }
             })
         except Exception as e:
-            # این خط باعث می‌شود اگر نئون اروری داد (مثل نبودن جدول یا فیلد اضافه)، توی کنسول مرورگر متوجه بشوی
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
     def delete(self, request, *args, **kwargs):
@@ -70,7 +67,8 @@ def post(self, request, *args, **kwargs):
         except ResearchProject.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Project not found'}, status=404)
 
-# ۳. مدیریت API مربوط به لاگ‌های آزمایشگاهی (ExperimentLogAPI)
+
+# ۳. مدیریت API مربوط به داده‌های آزمایشگاهی (لیست، ثبت و حذف)
 @method_decorator(csrf_exempt, name='dispatch')
 class ExperimentLogAPI(View):
     def get(self, request, *args, **kwargs):
