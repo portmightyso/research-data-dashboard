@@ -1,17 +1,13 @@
 from django.urls import path
 from .views import (
     DashboardHome, 
-    LoginView, 
-    logout_view, 
-    ProjectAPI,       # <-- مطمئن شو کامنت نیست
+    ProjectAPI,
     ExperimentLogAPI
 )
+from django.contrib.auth.views import LoginView, LogoutView # یا هر ویوی لاگینی که خودت داری
 
 urlpatterns = [
     path('', DashboardHome.as_view(), name='dashboard_home'),
-    path('login/', LoginView.as_view(), name='login_view'),
-    path('logout/', logout_view, name='logout_view'),
-    
-    path('api/projects/', ProjectAPI.as_view(), name='project_api'), # <-- مطمئن شو کامنت نیست
+    path('api/projects/', ProjectAPI.as_view(), name='project_api'),
     path('api/experiments/', ExperimentLogAPI.as_view(), name='experiment_api'),
 ]
