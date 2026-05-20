@@ -2,50 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Advanced Research Data Management Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Data Management Dashboard</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f9f9f9; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 25px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
+        h2 { color: #38bdf8; margin-top: 0; border-bottom: 2px solid #334155; padding-bottom: 10px; }
         
-        /* استایل تب‌ها */
-        .tabs-container { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .tab-btn { padding: 12px 24px; font-size: 15px; font-weight: bold; color: #7f8c8d; background: #edf2f4; border: none; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
-        .tab-btn:hover { background: #e2e8f0; color: #2c3e50; }
-        .tab-btn.active-tab-blue { background: #3498db; color: white; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
-        .tab-btn.active-tab-green { background: #2ecc71; color: white; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); }
-
-        .form-container { padding: 25px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
-        h3 { margin-top: 0; color: #34495e; }
-        input, select { padding: 12px; width: 100%; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 6px; display: block; box-sizing: border-box; font-size: 14px; }
-        input:focus, select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+        /* اصلاح سلکتور CSS که قبلاً خطا می‌داد */
+        h3 { margin-top: 0; color: #f1f5f9; }
         
-        button.submit-btn { padding: 12px 20px; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px; width: 100%; }
-        button.submit-btn:hover { background-color: #2980b9; }
-        button.submit-btn.btn-green { background-color: #2ecc71; }
-        button.submit-btn.btn-green:hover { background-color: #27ae60; }
+        .tabs-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; background: #334155; border: none; color: #94a3b8; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
+        .tab-btn:hover { background: #475569; color: #f1f5f9; }
+        .active-tab-blue { background: #0284c7 !important; color: white !important; }
+        .active-tab-green { background: #16a34a !important; color: white !important; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 40px; }
-        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background-color: #1e293b; color: white; font-weight: 600; }
-        .clickable-row { cursor: pointer; transition: background 0.2s; }
-        .clickable-row:hover { background-color: #f1f5f9 !important; }
-        .selected-row { background-color: #e2e8f0 !important; border-left: 5px solid #3498db; }
-        .btn-delete { padding: 6px 12px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; width: auto; }
-        .btn-delete:hover { background-color: #dc2626; }
-        .section-title { color: #1e293b; border-left: 5px solid #3498db; padding-left: 10px; margin-top: 40px; }
-        .section-title.green-left { border-left-color: #2ecc71; }
-        .filter-badge { background: #1e293b; color: white; padding: 4px 10px; border-radius: 20px; font-size: 13px; margin-left: 10px; display: inline-block; }
+        .grid-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .card { background: #111827; padding: 20px; border-radius: 8px; border: 1px solid #334155; }
+        
+        input, select, textarea { padding: 12px; width: 100%; margin-bottom: 15px; border: 1px solid #475569; background: #1f2937; color: white; border-radius: 6px; box-sizing: border-box; }
+        input:focus, select:focus, textarea:focus { border-color: #38bdf8; outline: none; }
+        
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: background 0.2s; }
+        .btn-blue { background: #0284c7; }
+        .btn-blue:hover { background: #0369a1; }
+        .btn-green { background: #16a34a; }
+        .btn-green:hover { background: #15803d; }
+        .btn-delete { background: #dc2626; padding: 6px 12px; width: auto; font-size: 13px; }
+        .btn-delete:hover { background: #b91c1c; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #1f2937; border-radius: 6px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background-color: #374151; color: #38bdf8; }
+        tr:hover { background-color: #2d3748; }
+        
+        .logout-btn { background: none; border: none; color: #f87171; font-weight: bold; font-size: 14px; cursor: pointer; padding: 0; transition: color 0.2s; }
+        .logout-btn:hover { color: #ef4444; }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
     <h2>🔬 Research Data Management Dashboard</h2>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8fafc; padding: 10px 20px; border-radius: 6px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #111827; padding: 12px 20px; border-radius: 6px; border: 1px solid #334155;">
         <span>Welcome, <strong>Prof. {{ professor_name }}</strong> 👋</span>
-        <a href="{% url 'logout_view' %}" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 14px;">Logout</a>
+        <form action="{% url 'logout_view' %}" method="post" style="margin: 0; padding: 0; display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
     </div>
 
     <div class="tabs-container">
@@ -57,97 +64,89 @@
         </button>
     </div>
 
-    <div v-if="currentTab === 'project'" class="form-container">
-        <h3>Create a New Research Project</h3>
-        <input v-model="newTitle" placeholder="Project Title (e.g., Disaster Robotics Control)">
-        <button @click="submitProject" class="submit-btn">Save Project to Database</button>
+    <div v-if="currentTab === 'project'" class="grid-layout">
+        <div class="card">
+            <h3>Add New Project</h3>
+            <input type="text" v-model="newProjectTitle" placeholder="Project Title (e.g., Robot Control)" @keyup.enter="addProject">
+            <button @click="addProject" class="btn btn-blue">Save Project</button>
+        </div>
+        <div class="card">
+            <h3>Active Projects</h3>
+            <table v-if="projects.length > 0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Project Title</th>
+                        <th>Researcher</th>
+                        <th>Date Created</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="project in projects" :key="project.id">
+                        <td>[[ project.id ]]</td>
+                        <td><strong>[[ project.title ]]</strong></td>
+                        <td>[[ project.researcher ]]</td>
+                        <td>[[ project.date ]]</td>
+                        <td>
+                            <button @click="deleteProject(project.id)" class="btn btn-delete">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p v-else style="color: #94a3b8;">No projects registered yet.</p>
+        </div>
     </div>
 
-    <div v-if="currentTab === 'experiment'" class="form-container" style="border-top: 4px solid #2ecc71;">
-        <h3>Log New Experiment Dataset</h3>
-        <label style="font-size: 14px; color: #64748b; display: block; margin-bottom: 5px;">Select Associated Project:</label>
-        
-        {% verbatim %}
-        <select v-model="selectedProjectId">
-            <option value="" disabled>-- Choose a Project from List --</option>
-            <option v-for="p in projects" :key="p.id" :value="p.id">{{ p.title }}</option>
-        </select>
-        {% endverbatim %}
-        
-        <input v-model="datasetName" placeholder="Dataset Name (e.g., Calibration Run 1)">
-        <input type="number" step="any" v-model="measuredValue" placeholder="Measured Value (Float)">
-        <input v-model="notes" placeholder="Lab Notes / Observations">
-        <button @click="submitData" class="submit-btn btn-green">Log Dataset Securely</button>
+    <div v-if="currentTab === 'experiment'" class="grid-layout">
+        <div class="card">
+            <h3>Log New Data</h3>
+            <label style="font-size: 14px; color: #94a3b8;">Select Target Project:</label>
+            <select v-model="selectedProjectId">
+                <option value="" disabled selected>-- Choose a Project --</option>
+                <option v-for="p in projects" :value="p.id">[[ p.title ]]</option>
+            </select>
+            
+            <input type="text" v-model="datasetName" placeholder="Dataset/Test Name">
+            <input type="number" step="any" v-model="measuredValue" placeholder="Measured Value (Float)">
+            <textarea v-model="labNotes" placeholder="Lab Notes / Observations" rows="3"></textarea>
+            
+            <button @click="addExperiment" class="btn btn-green">Secure Log Entry</button>
+        </div>
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Logged Experiment Data</h3>
+                <select v-model="filterProjectId" style="width: auto; margin: 0; padding: 6px 12px;">
+                    <option value="all">All Projects</option>
+                    <option v-for="p in projects" :value="p.id">[[ p.title ]]</option>
+                </select>
+            </div>
+            
+            <table v-if="filteredExperiments.length > 0">
+                <thead>
+                    <tr>
+                        <th>Project ID</th>
+                        <th>Dataset Name</th>
+                        <th>Value</th>
+                        <th>Lab Notes</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in filteredExperiments" :key="item.id">
+                        <td>#[[ item.projectId ]]</td>
+                        <td><strong>[[ item.name ]]</strong></td>
+                        <td style="color: #4ade80; font-weight: bold;">[[ item.value ]]</td>
+                        <td>[[ item.notes ]]</td>
+                        <td>
+                            <button @click="deleteExperiment(item.id)" class="btn btn-delete">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p v-else style="color: #94a3b8; margin-top: 20px;">No experiment data logged for this selection.</p>
+        </div>
     </div>
-
-    <h3 class="section-title">📁 Current Active Projects <span style="font-size: 12px; color: #64748b; font-weight: normal;">(Click row to filter datasets below)</span></h3>
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 10%;">ID</th>
-                <th style="width: 45%;">Project Title</th>
-                <th style="width: 25%;">Lead Researcher</th>
-                <th style="width: 15%;">Date Created</th>
-                <th style="width: 5%;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% verbatim %}
-            <tr v-for="project in projects" 
-                :key="project.id" 
-                @click="selectProject(project.id)"
-                class="clickable-row"
-                :class="{ 'selected-row': activeProjectId === project.id }">
-                <td>#{{ project.id }}</td>
-                <td><strong>{{ project.title }}</strong></td>
-                <td>{{ project.researcher }}</td>
-                <td>{{ project.date }}</td>
-                <td>
-                    <button @click.stop="deleteProject(project.id)" class="btn-delete">Delete</button>
-                </td>
-            </tr>
-            <tr v-if="projects.length === 0">
-                <td colspan="5" style="text-align: center; color: #64748b;">No projects created yet.</td>
-            </tr>
-            {% endverbatim %}
-        </tbody>
-    </table>
-
-    <h3 class="section-title green-left">
-        📊 Logged Experiment Datasets 
-        {% verbatim %}
-        <span v-if="activeProjectId" class="filter-badge">Project #{{ activeProjectId }} Filter Active</span>
-        <span v-else class="filter-badge" style="background-color: #27ae60;">Showing All Datasets</span>
-        <button v-if="activeProjectId" @click="activeProjectId = null" style="width: auto; padding: 2px 8px; margin-left: 10px; font-size: 11px; background: #ef4444; display: inline-block; color: white; border: none; border-radius: 4px; cursor: pointer;">Clear Filter</button>
-        {% endverbatim %}
-    </h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Project ID</th>
-                <th>Dataset / Test Name</th>
-                <th>Measured Value (Float)</th>
-                <th>Lab Notes</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% verbatim %}
-            <tr v-for="item in filteredExperiments" :key="item.id">
-                <td><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-weight: bold; color: #475569;">#{{ item.projectId }}</span></td>
-                <td><strong>{{ item.name }}</strong></td>
-                <td style="color: #16a34a; font-weight: bold;">{{ item.value }}</td>
-                <td style="font-style: italic; color: #64748b;">{{ item.notes || 'No notes' }}</td>
-                <td>
-                    <button @click="deleteExperiment(item.id)" class="btn-delete">Delete</button>
-                </td>
-            </tr>
-            <tr v-if="filteredExperiments.length === 0">
-                <td colspan="5" style="text-align: center; color: #64748b;">No experiment data found for this view.</td>
-            </tr>
-            {% endverbatim %}
-        </tbody>
-    </table>
 </div>
 
 <script>
@@ -155,133 +154,136 @@
 
     createApp({
         setup() {
+            const currentTab = ref('project');
             const projects = ref([]);
             const experiments = ref([]);
-            const activeProjectId = ref(null);
-            const currentTab = ref('project');
 
-            const newTitle = ref('');
-            const newResearcher = ref('');
-            
+            // فرم پروژه‌ها
+            const newProjectTitle = ref('');
+
+            // فرم آزمایش‌ها
             const selectedProjectId = ref('');
             const datasetName = ref('');
             const measuredValue = ref('');
-            const notes = ref('');
+            const labNotes = ref('');
+            const filterProjectId = ref('all');
 
-            // ۱. گرفتن لیست پروژه‌ها
-            const fetchProjects = async () => {
+            // دریافت داده‌ها از بک‌آند جنگو موقع لود صفحه
+            const fetchInitialData = async () => {
                 try {
-                    const response = await fetch('/api/projects/');
-                    const data = await response.json();
-                    projects.value = data.projects;
-                } catch (e) { console.error("Error projects:", e); }
-            };
+                    const resProj = await fetch('/api/projects/');
+                    const dataProj = await resProj.json();
+                    projects.value = dataProj.projects || [];
 
-            // ۲. تابع گم‌شده برای گرفتن همیشگی لاگ‌ها از دیتابیس (اصلاح اصلی دکمه رفرش و لاگ‌اوت)
-            const fetchExperiments = async () => {
-                try {
-                    const response = await fetch('/api/experiments/');
-                    const data = await response.json();
-                    experiments.value = data.experiments;
-                } catch (e) { console.error("Error experiments:", e); }
-            };
-
-            // ۳. ثبت پروژه جدید
-            const submitProject = async () => {
-                if (!newTitle.value) return;
-                const response = await fetch('/api/projects/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: newTitle.value })
-                });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    projects.value.push(data.project);
-                    newTitle.value = '';
+                    const resExp = await fetch('/api/experiments/');
+                    const dataExp = await resExp.json();
+                    experiments.value = dataExp.experiments || [];
+                } catch (err) {
+                    console.error("Error loading sync data:", err);
                 }
             };
 
-            // ۴. ثبت لاگ جدید در دیتابیس
-            const submitData = async () => {
-                if (!selectedProjectId.value || !datasetName.value || !measuredValue.value) return;
+            onMounted(() => {
+                fetchInitialData();
+            });
 
-                const response = await fetch('/api/experiments/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        projectId: selectedProjectId.value,
-                        name: datasetName.value,
-                        value: measuredValue.value,
-                        notes: notes.value
-                    })
-                });
-                
-                const data = await response.json();
-                if (data.status === 'success') {
-                    experiments.value.push(data.experiment); 
-                    datasetName.value = ''; 
-                    measuredValue.value = ''; 
-                    notes.value = '';
+            // ثبت پروژه جدید
+            const addProject = async () => {
+                if (!newProjectTitle.value.trim()) return;
+                try {
+                    const response = await fetch('/api/projects/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title: newProjectTitle.value })
+                    });
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        projects.value.push(data.project);
+                        newProjectTitle.value = '';
+                    }
+                } catch (err) {
+                    console.error(err);
                 }
             };
 
-            // ۵. حذف پروژه از دیتابیس
+            // حذف پروژه
             const deleteProject = async (id) => {
-                if (!confirm("Are you sure you want to delete this project?")) return;
                 try {
                     const response = await fetch('/api/projects/', {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id: id })
                     });
-                    const data = await response.json();
-                    if (data.status === 'success') {
+                    if (response.ok) {
                         projects.value = projects.value.filter(p => p.id !== id);
-                        if (activeProjectId.value === id) activeProjectId.value = null;
-                        // بعد از حذف پروژه، لاگ‌های مربوط به آن را هم از روی صفحه بردار
-                        experiments.value = experiments.value.filter(exp => exp.projectId !== id);
+                        experiments.value = experiments.value.filter(e => e.projectId !== id);
                     }
-                } catch (error) { alert("Error deleting project."); }
+                } catch (err) {
+                    console.error(err);
+                }
             };
 
-            // ۶. حذف دائمی لاگ از دیتابیس (اصلاح متد حذف قدیمی موقت)
+            // ثبت لاگ آزمایشگاهی جدید
+            const addExperiment = async () => {
+                if (!selectedProjectId.value || !datasetName.value.trim() || measuredValue.value === '') {
+                    alert('Please fill out Project, Name, and Value fields.');
+                    return;
+                }
+                try {
+                    const response = await fetch('/api/experiments/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            projectId: selectedProjectId.value,
+                            name: datasetName.value,
+                            value: parseFloat(measuredValue.value),
+                            notes: labNotes.value
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        experiments.value.push(data.experiment);
+                        datasetName.value = '';
+                        measuredValue.value = '';
+                        labNotes.value = '';
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            };
+
+            // حذف لاگ آزمایشگاهی
             const deleteExperiment = async (id) => {
-                if (!confirm("Are you sure you want to delete this dataset log?")) return;
                 try {
                     const response = await fetch('/api/experiments/', {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id: id })
                     });
-                    const data = await response.json();
-                    if (data.status === 'success') {
-                        experiments.value = experiments.value.filter(exp => exp.id !== id);
+                    if (response.ok) {
+                        experiments.value = experiments.value.filter(e => e.id !== id);
                     }
-                } catch (e) { console.error("Error deleting log:", e); }
+                } catch (err) {
+                    console.error(err);
+                }
             };
 
-            const selectProject = (id) => {
-                activeProjectId.value = activeProjectId.value === id ? null : id;
-            };
-
+            // فیلتر هوشمند لاگ‌ها بر اساس پروژه انتخاب شده
             const filteredExperiments = computed(() => {
-                if (!activeProjectId.value) return experiments.value;
-                return experiments.value.filter(exp => exp.projectId === activeProjectId.value);
+                if (filterProjectId.value === 'all') {
+                    return experiments.value;
+                }
+                return experiments.value.filter(e => e.projectId == filterProjectId.value);
             });
 
-            // اجرای هر دو تابع هنگام بالا آمدن صفحه
-            onMounted(() => {
-                fetchProjects();
-                fetchExperiments(); 
-            });
-
-            return { 
-                projects, experiments, activeProjectId, filteredExperiments, currentTab,
-                newTitle, newResearcher, 
-                selectedProjectId, datasetName, measuredValue, notes, 
-                submitProject, submitData, deleteProject, deleteExperiment, selectProject
+            return {
+                currentTab, projects, experiments,
+                newProjectTitle, addProject, deleteProject,
+                selectedProjectId, datasetName, measuredValue, labNotes, filterProjectId,
+                addExperiment, deleteExperiment, filteredExperiments
             };
-        }
+        },
+        delimiters: ['[[', ']]'] // تغییر دلیمیتر برای جلوگیری از تداخل با تمپلیت انجین جنگو
     }).mount('#app');
 </script>
 
